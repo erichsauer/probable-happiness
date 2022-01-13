@@ -7,17 +7,23 @@ export default function App() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (index > 0) setDate(history[index]);
+    setDate(history[index] || '');
   }, [index]);
 
   const handleButton = (e) => {
     switch (e.target.name) {
       case 'set':
         setDate(() => e.target.value);
-        setHistory((prevState) => {
-          setIndex(prevState.length);
-          return [...prevState, e.target.value];
-        });
+        if (index + 1 < history.length)
+          setHistory((prevHistory) => {
+            prevHistory.splice(index + 1, 0, e.target.value);
+            return prevHistory;
+          });
+        else
+          setHistory((prevHistory) => {
+            setIndex(prevHistory.length);
+            return [...prevHistory, e.target.value];
+          });
         break;
       case 'undo':
         if (index > 0) setIndex((prevState) => prevState - 1);
@@ -49,14 +55,9 @@ export default function App() {
         <p>error: {error}</p>
         <p>current index: {index.toLocaleString()}</p>
         <p>
-          date:{' '}
-          {date &&
-            new Date(date + ' 0:00').toLocaleDateString('en-US', {
-              weekday: 'short',
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
+          {history.map((x, i) => (
+            <span key={x + i}>{x === date ? '❎' : '🟩'}</span>
+          ))}
         </p>
       </fieldset>
     </form>
