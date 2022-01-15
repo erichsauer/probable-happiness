@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react';
+import {
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  FormHelperText,
+  Button,
+  Flex,
+  ButtonGroup,
+} from '@chakra-ui/react';
 
 export default function App() {
   const [history, setHistory] = useState([]);
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(-1);
   const [date, setDate] = useState('');
   const [error, setError] = useState('');
 
@@ -13,23 +22,18 @@ export default function App() {
   const handleButton = (e) => {
     switch (e.target.name) {
       case 'set':
-        setDate(() => e.target.value);
-        if (index + 1 < history.length)
-          setHistory((prevHistory) => {
-            prevHistory.splice(index + 1, 0, e.target.value);
-            return prevHistory;
-          });
-        else
-          setHistory((prevHistory) => {
-            setIndex(prevHistory.length);
-            return [...prevHistory, e.target.value];
-          });
+        setHistory((prevHistory) => [
+          ...prevHistory.slice(0, index + 1),
+          e.target.value,
+          ...prevHistory.slice(index + 1, prevHistory.length + 1),
+        ]);
+        setIndex((prevState) => prevState + 1);
         break;
       case 'undo':
-        if (index > 0) setIndex((prevState) => prevState - 1);
+        setIndex((prevState) => prevState - 1);
         break;
       case 'redo':
-        if (index < history.length - 1) setIndex((prevState) => prevState + 1);
+        setIndex((prevState) => prevState + 1);
         break;
       default:
         setError(`no case exists for ${e.target.name}`);
@@ -38,28 +42,38 @@ export default function App() {
   };
 
   return (
-    <form onSubmit={(e) => e.preventDefault()}>
-      <fieldset>
-        <legend>date time machine</legend>
-        <label htmlFor="date"></label>
-        <input type="date" name="set" value={date} onChange={handleButton} />
-        <button onClick={handleButton} name="undo">
-          undo
-        </button>
-        <button onClick={handleButton} name="redo">
-          redo
-        </button>
-        <button onClick={handleButton} name="butts">
-          butts
-        </button>
-        <p>error: {error}</p>
-        <p>current index: {index.toLocaleString()}</p>
+    <FormControl as="fieldset" onSubmit={(e) => e.preventDefault()}>
+      <Flex align="center" justify="center" direction="column">
+        <FormLabel as="legend" htmlFor="date">
+          Time Machine
+        </FormLabel>
+        <input
+          type="date"
+          name="set"
+          id="date"
+          value={date}
+          onChange={handleButton}
+        />
+        <FormHelperText>Enter a date into the Time Machine</FormHelperText>
+        <ButtonGroup>
+          <Button disabled={index <= 0} onClick={handleButton} name="undo">
+            UNDO
+          </Button>
+          <Button
+            disabled={index === history.length - 1}
+            onClick={handleButton}
+            name="redo"
+          >
+            REDO
+          </Button>
+        </ButtonGroup>
+        {error && <p>{'error: ' + error}</p>}
         <p>
           {history.map((x, i) => (
             <span key={x + i}>{x === date ? '❎' : '🟩'}</span>
           ))}
         </p>
-      </fieldset>
-    </form>
+      </Flex>
+    </FormControl>
   );
 }
